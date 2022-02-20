@@ -47,16 +47,21 @@ void q_free(struct list_head *l)
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    if (!head) {
+    if (!head)
         return false;
-    } else {
-        element_t *new = malloc(sizeof(element_t));
+
+    element_t *new = malloc(sizeof(element_t));
+    if (new &&s) {
         new->value = malloc((strlen(s) + 1) * sizeof(char));
-        strncpy(new->value, s, strlen(s) + 1);
-        *(new->value + strlen(s)) = '\0';
-        list_add(&new->list, head);
+        if (new->value) {
+            strncpy(new->value, s, strlen(s));
+            *(new->value + strlen(s)) = '\0';
+            list_add(&new->list, head);
+            return true;
+        }
     }
-    return true;
+    free(new);
+    return false;
 }
 
 /*
@@ -68,16 +73,21 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    if (!head) {
+    if (!head)
         return false;
-    } else {
-        element_t *new = malloc(sizeof(element_t));
+
+    element_t *new = malloc(sizeof(element_t));
+    if (new &&s) {
         new->value = malloc((strlen(s) + 1) * sizeof(char));
-        strncpy(new->value, s, strlen(s) + 1);
-        *(new->value + strlen(s)) = '\0';
-        list_add_tail(&new->list, head);
+        if (new->value) {
+            strncpy(new->value, s, strlen(s));
+            *(new->value + strlen(s)) = '\0';
+            list_add_tail(&new->list, head);
+            return true;
+        }
     }
-    return true;
+    free(new);
+    return false;
 }
 
 /*
