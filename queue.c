@@ -117,15 +117,12 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 
     int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
                                                          : (bufsize - 1);
-
-    if (!sp)
-        sp = malloc((char_len + 1) * sizeof(char));
-    else
+    if (sp) {
         sp = realloc(sp, (char_len + 1) * sizeof(char));
-
-    strncpy(sp, rm_ele->value, char_len);
-    *(sp + char_len) = '\0';
-
+        strncpy(sp, rm_ele->value, char_len);
+        *(sp + char_len) = '\0';
+        return rm_ele;
+    }
     return rm_ele;
 }
 
@@ -144,14 +141,12 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
                                                          : (bufsize - 1);
 
-    if (!sp)
-        sp = malloc((char_len + 1) * sizeof(char));
-    else
+    if (sp) {
         sp = realloc(sp, (char_len + 1) * sizeof(char));
-
-    strncpy(sp, rm_ele->value, char_len);
-    *(sp + char_len) = '\0';
-
+        strncpy(sp, rm_ele->value, char_len);
+        *(sp + char_len) = '\0';
+        return rm_ele;
+    }
     return rm_ele;
 }
 
@@ -221,6 +216,32 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    if (!head || list_is_singular(head))
+        return false;
+    struct list_head *tmp = head->next;
+    struct list_head *if_dup = NULL;
+
+    while (!(tmp == head)) {
+        element_t *ele_dup = container_of(tmp, element_t, list);
+        element_t *ele_dup_next = container_of(tmp->next, element_t, list);
+
+        while (!strcmp(ele_dup->value, ele_dup_next->value)) {
+            if_dup = tmp;
+            list_del(tmp->next);
+            q_release_element(ele_dup_next);
+            ele_dup_next = container_of(tmp->next, element_t, list);
+            if (tmp->next == head)
+                break;
+        }
+
+        tmp = tmp->next;
+        if (if_dup) {
+            element_t *ele_dup_a = container_of(if_dup, element_t, list);
+            list_del(if_dup);
+            q_release_element(ele_dup_a);
+            if_dup = NULL;
+        }
+    }
     return true;
 }
 
@@ -278,4 +299,31 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    struct list_head less, greater;
+    element_t *pivot, *item, *is = NULL;
+
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    INIT_LIST_HEAD(&less);
+    INIT_LIST_HEAD(&greater);
+
+    pivot = list_first_entry(head, element_t, list);
+    list_del(&pivot->list);
+
+    list_for_each_entry_safe (item, is, head, list) {
+        if (strcmp(item->value, pivot->value) < 0)
+            list_move_tail(&item->list, &less);
+        else
+            list_move(&item->list, &greater);
+    }
+
+    q_sort(&less);
+    q_sort(&greater);
+
+    list_add(&pivot->list, head);
+    list_splice(&less, head);
+    list_splice_tail(&greater, head);
+}
