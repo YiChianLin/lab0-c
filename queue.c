@@ -99,13 +99,20 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     if (!head || list_empty(head))
         return NULL;
 
-    if (!sp)
-        sp = malloc(bufsize * sizeof(char));
-
-    struct list_head *ptr = head->next;
+    element_t *rm_ele = container_of(head->next, element_t, list);
     list_del(head->next);
-    element_t *rm_ele = container_of(ptr, element_t, list);
-    strncpy(sp, rm_ele->value, strlen(rm_ele->value));
+
+    int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
+                                                         : (bufsize - 1);
+
+    if (!sp)
+        sp = malloc((char_len + 1) * sizeof(char));
+    else
+        sp = realloc(sp, (char_len + 1) * sizeof(char));
+
+    strncpy(sp, rm_ele->value, char_len);
+    *(sp + char_len) = '\0';
+
     return rm_ele;
 }
 
@@ -118,13 +125,20 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     if (!head || list_empty(head))
         return NULL;
 
-    if (!sp)
-        sp = malloc(bufsize * sizeof(char));
+    element_t *rm_ele = container_of(head->prev, element_t, list);
+    list_del(head->prev);
 
-    struct list_head *ptr = head->prev;
-    list_del(ptr);
-    element_t *rm_ele = container_of(ptr, element_t, list);
-    strncpy(rm_ele->value, sp, strlen(rm_ele->value));
+    int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
+                                                         : (bufsize - 1);
+
+    if (!sp)
+        sp = malloc((char_len + 1) * sizeof(char));
+    else
+        sp = realloc(sp, (char_len + 1) * sizeof(char));
+
+    strncpy(sp, rm_ele->value, char_len);
+    *(sp + char_len) = '\0';
+
     return rm_ele;
 }
 
