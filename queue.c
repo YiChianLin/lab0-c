@@ -18,9 +18,12 @@
 struct list_head *q_new()
 {
     struct list_head *new_head = malloc(sizeof(struct list_head));
-    INIT_LIST_HEAD(new_head);
-
-    return new_head;
+    if (new_head) {
+        INIT_LIST_HEAD(new_head);
+        return new_head;
+    }
+    free(new_head);
+    return NULL;
 }
 
 /* Free all storage used by queue */
@@ -191,6 +194,18 @@ int q_size(struct list_head *head)
 bool q_delete_mid(struct list_head *head)
 {
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
+    if (!head || list_empty(head))
+        return false;
+
+    int mid_pos =
+        q_size(head) % 2 == 0 ? q_size(head) / 2 : q_size(head) / 2 + 1;
+
+    for (int i = 0; i < mid_pos; i++)
+        head = head->next;
+
+    list_del(head);
+    element_t *mid_ele = container_of(head, element_t, list);
+    q_release_element(mid_ele);
     return true;
 }
 
