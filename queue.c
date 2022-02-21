@@ -109,7 +109,7 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (!head || list_empty(head))
+    /*if (!head || list_empty(head))
         return NULL;
 
     element_t *rm_ele = list_entry(head->next, element_t, list);
@@ -122,6 +122,22 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
         *(sp + char_len) = '\0';
         return rm_ele;
     }
+    return rm_ele;*/
+    if (!head || list_empty(head))
+        return NULL;
+
+    element_t *rm_ele = list_entry(head->next, element_t, list);
+    list_del(head->next);
+
+    // int char_len = strlen(rm_ele->value) < (bufsize - 1) ?
+    // strlen(rm_ele->value)
+    //                                                      : (bufsize - 1);
+    if (!sp)
+        return NULL;
+
+    strncpy(sp, rm_ele->value, bufsize - 1);
+    *(sp + bufsize - 1) = '\0';
+
     return rm_ele;
 }
 
@@ -137,14 +153,16 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     element_t *rm_ele = list_entry(head->prev, element_t, list);
     list_del(head->prev);
 
-    int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
-                                                         : (bufsize - 1);
+    // int char_len = strlen(rm_ele->value) < (bufsize - 1) ?
+    // strlen(rm_ele->value)
+    //                                                      : (bufsize - 1);
 
-    if (sp) {
-        strncpy(sp, rm_ele->value, char_len);
-        *(sp + char_len) = '\0';
-        return rm_ele;
-    }
+    if (!sp)
+        return NULL;
+
+    strncpy(sp, rm_ele->value, bufsize - 1);
+    *(sp + bufsize - 1) = '\0';
+
     return rm_ele;
 }
 
@@ -289,31 +307,4 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head)
-{
-    struct list_head less, greater;
-    element_t *pivot, *item, *is = NULL;
-
-    if (!head || list_empty(head) || list_is_singular(head))
-        return;
-
-    INIT_LIST_HEAD(&less);
-    INIT_LIST_HEAD(&greater);
-
-    pivot = list_first_entry(head, element_t, list);
-    list_del(&pivot->list);
-
-    list_for_each_entry_safe (item, is, head, list) {
-        if (strcmp(item->value, pivot->value) < 0)
-            list_move_tail(&item->list, &less);
-        else
-            list_move(&item->list, &greater);
-    }
-
-    q_sort(&less);
-    q_sort(&greater);
-
-    list_add(&pivot->list, head);
-    list_splice(&less, head);
-    list_splice_tail(&greater, head);
-}
+void q_sort(struct list_head *head) {}
