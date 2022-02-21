@@ -34,7 +34,7 @@ void q_free(struct list_head *l)
 
     struct list_head *tmp = l->next;
     while (tmp != l) {
-        element_t *ptr = container_of(tmp, element_t, list);
+        element_t *ptr = list_entry(tmp, element_t, list);
         tmp = tmp->next;
         q_release_element(ptr);
     }
@@ -118,7 +118,6 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
                                                          : (bufsize - 1);
     if (sp) {
-        sp = realloc(sp, (char_len + 1) * sizeof(char));
         strncpy(sp, rm_ele->value, char_len);
         *(sp + char_len) = '\0';
         return rm_ele;
@@ -142,7 +141,6 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
                                                          : (bufsize - 1);
 
     if (sp) {
-        sp = realloc(sp, (char_len + 1) * sizeof(char));
         strncpy(sp, rm_ele->value, char_len);
         *(sp + char_len) = '\0';
         return rm_ele;
@@ -241,6 +239,8 @@ bool q_delete_dup(struct list_head *head)
             q_release_element(ele_dup_a);
             if_dup = NULL;
         }
+        if (tmp->next == head)
+            break;
     }
     return true;
 }
@@ -251,16 +251,17 @@ bool q_delete_dup(struct list_head *head)
 void q_swap(struct list_head *head)
 {
     // https://leetcode.com/problems/swap-nodes-in-pairs/
-    if (!head || list_is_singular(head))
+    if (!head || list_is_singular(head) || list_empty(head))
         return;
 
     struct list_head *forward = head->next;
     struct list_head *forward_next = forward->next;
-
-    for (int i = 0; i < q_size(head) / 2; i++) {
+    char *tmp;
+    int size = q_size(head) / 2;
+    for (int i = 0; i < size; i++) {
         element_t *ele_first = container_of(forward, element_t, list);
         element_t *ele_second = container_of(forward_next, element_t, list);
-        char *tmp = ele_first->value;
+        tmp = ele_first->value;
         ele_first->value = ele_second->value;
         ele_second->value = tmp;
         forward = forward_next->next;
@@ -277,16 +278,17 @@ void q_swap(struct list_head *head)
  */
 void q_reverse(struct list_head *head)
 {
-    if (!head || list_is_singular(head))
+    if (!head || list_is_singular(head) || list_empty(head))
         return;
 
     struct list_head *forward = head->next;
     struct list_head *backward = head->prev;
-
-    for (int i = 0; i < q_size(head) / 2; i++) {
+    char *tmp;
+    int size = q_size(head) / 2;
+    for (int i = 0; i < size; i++) {
         element_t *ele_f = container_of(forward, element_t, list);
         element_t *ele_b = container_of(backward, element_t, list);
-        char *tmp = ele_f->value;
+        tmp = ele_f->value;
         ele_f->value = ele_b->value;
         ele_b->value = tmp;
         forward = forward->next;
