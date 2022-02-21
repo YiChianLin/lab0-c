@@ -109,35 +109,16 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    /*if (!head || list_empty(head))
-        return NULL;
-
-    element_t *rm_ele = list_entry(head->next, element_t, list);
-    list_del(head->next);
-
-    int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
-                                                         : (bufsize - 1);
-    if (sp) {
-        strncpy(sp, rm_ele->value, char_len);
-        *(sp + char_len) = '\0';
-        return rm_ele;
-    }
-    return rm_ele;*/
     if (!head || list_empty(head))
         return NULL;
 
-    element_t *rm_ele = list_entry(head->next, element_t, list);
+    element_t *rm_ele = container_of(head->next, element_t, list);
     list_del(head->next);
 
-    // int char_len = strlen(rm_ele->value) < (bufsize - 1) ?
-    // strlen(rm_ele->value)
-    //                                                      : (bufsize - 1);
-    if (!sp)
-        return NULL;
-
-    strncpy(sp, rm_ele->value, bufsize - 1);
-    *(sp + bufsize - 1) = '\0';
-
+    if (sp) {
+        strncpy(sp, rm_ele->value, bufsize - 1);
+        *(sp + bufsize - 1) = '\0';
+    }
     return rm_ele;
 }
 
@@ -150,19 +131,13 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     if (!head || list_empty(head))
         return NULL;
 
-    element_t *rm_ele = list_entry(head->prev, element_t, list);
+    element_t *rm_ele = container_of(head->prev, element_t, list);
     list_del(head->prev);
 
-    // int char_len = strlen(rm_ele->value) < (bufsize - 1) ?
-    // strlen(rm_ele->value)
-    //                                                      : (bufsize - 1);
-
-    if (!sp)
-        return NULL;
-
-    strncpy(sp, rm_ele->value, bufsize - 1);
-    *(sp + bufsize - 1) = '\0';
-
+    if (sp) {
+        strncpy(sp, rm_ele->value, bufsize - 1);
+        *(sp + bufsize - 1) = '\0';
+    }
     return rm_ele;
 }
 
@@ -208,14 +183,16 @@ bool q_delete_mid(struct list_head *head)
     if (!head || list_empty(head))
         return false;
 
-    int mid_pos =
-        q_size(head) % 2 == 0 ? q_size(head) / 2 : q_size(head) / 2 + 1;
+    struct list_head *second = head->next;
+    struct list_head *first = head->next;
 
-    for (int i = 0; i < mid_pos; i++)
-        head = head->next;
+    while (first != head && first->next != head) {
+        first = first->next->next;
+        second = second->next;
+    }
 
-    list_del(head);
-    element_t *mid_ele = list_entry(head, element_t, list);
+    list_del(second);
+    element_t *mid_ele = list_entry(second, element_t, list);
     q_release_element(mid_ele);
     return true;
 }
