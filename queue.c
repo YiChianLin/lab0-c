@@ -112,7 +112,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     if (!head || list_empty(head))
         return NULL;
 
-    element_t *rm_ele = container_of(head->next, element_t, list);
+    element_t *rm_ele = list_entry(head->next, element_t, list);
     list_del(head->next);
 
     int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
@@ -134,7 +134,7 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     if (!head || list_empty(head))
         return NULL;
 
-    element_t *rm_ele = container_of(head->prev, element_t, list);
+    element_t *rm_ele = list_entry(head->prev, element_t, list);
     list_del(head->prev);
 
     int char_len = strlen(rm_ele->value) < (bufsize - 1) ? strlen(rm_ele->value)
@@ -197,7 +197,7 @@ bool q_delete_mid(struct list_head *head)
         head = head->next;
 
     list_del(head);
-    element_t *mid_ele = container_of(head, element_t, list);
+    element_t *mid_ele = list_entry(head, element_t, list);
     q_release_element(mid_ele);
     return true;
 }
@@ -220,21 +220,21 @@ bool q_delete_dup(struct list_head *head)
     struct list_head *if_dup = NULL;
 
     while (!(tmp == head)) {
-        element_t *ele_dup = container_of(tmp, element_t, list);
-        element_t *ele_dup_next = container_of(tmp->next, element_t, list);
+        element_t *ele_dup = list_entry(tmp, element_t, list);
+        element_t *ele_dup_next = list_entry(tmp->next, element_t, list);
 
         while (!strcmp(ele_dup->value, ele_dup_next->value)) {
             if_dup = tmp;
             list_del(tmp->next);
             q_release_element(ele_dup_next);
-            ele_dup_next = container_of(tmp->next, element_t, list);
+            ele_dup_next = list_entry(tmp->next, element_t, list);
             if (tmp->next == head)
                 break;
         }
 
         tmp = tmp->next;
         if (if_dup) {
-            element_t *ele_dup_a = container_of(if_dup, element_t, list);
+            element_t *ele_dup_a = list_entry(if_dup, element_t, list);
             list_del(if_dup);
             q_release_element(ele_dup_a);
             if_dup = NULL;
@@ -259,8 +259,8 @@ void q_swap(struct list_head *head)
     char *tmp;
     int size = q_size(head) / 2;
     for (int i = 0; i < size; i++) {
-        element_t *ele_first = container_of(forward, element_t, list);
-        element_t *ele_second = container_of(forward_next, element_t, list);
+        element_t *ele_first = list_entry(forward, element_t, list);
+        element_t *ele_second = list_entry(forward_next, element_t, list);
         tmp = ele_first->value;
         ele_first->value = ele_second->value;
         ele_second->value = tmp;
@@ -286,8 +286,8 @@ void q_reverse(struct list_head *head)
     char *tmp;
     int size = q_size(head) / 2;
     for (int i = 0; i < size; i++) {
-        element_t *ele_f = container_of(forward, element_t, list);
-        element_t *ele_b = container_of(backward, element_t, list);
+        element_t *ele_f = list_entry(forward, element_t, list);
+        element_t *ele_b = list_entry(backward, element_t, list);
         tmp = ele_f->value;
         ele_f->value = ele_b->value;
         ele_b->value = tmp;
