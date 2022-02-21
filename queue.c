@@ -251,21 +251,12 @@ bool q_delete_dup(struct list_head *head)
 void q_swap(struct list_head *head)
 {
     // https://leetcode.com/problems/swap-nodes-in-pairs/
-    if (!head || list_is_singular(head) || list_empty(head))
-        return;
-
-    struct list_head *forward = head->next;
-    struct list_head *forward_next = forward->next;
-    char *tmp;
-    int size = q_size(head) / 2;
-    for (int i = 0; i < size; i++) {
-        element_t *ele_first = list_entry(forward, element_t, list);
-        element_t *ele_second = list_entry(forward_next, element_t, list);
-        tmp = ele_first->value;
-        ele_first->value = ele_second->value;
-        ele_second->value = tmp;
-        forward = forward_next->next;
-        forward_next = forward->next;
+    struct list_head *first = head->next;
+    struct list_head *second = first->next;
+    for (; !(first == head || second == head);
+         second = first->next->next, first = first->next) {
+        list_del(first);
+        list_add(first, second);
     }
 }
 
@@ -281,19 +272,16 @@ void q_reverse(struct list_head *head)
     if (!head || list_is_singular(head) || list_empty(head))
         return;
 
-    struct list_head *forward = head->next;
-    struct list_head *backward = head->prev;
-    char *tmp;
-    int size = q_size(head) / 2;
-    for (int i = 0; i < size; i++) {
-        element_t *ele_f = list_entry(forward, element_t, list);
-        element_t *ele_b = list_entry(backward, element_t, list);
-        tmp = ele_f->value;
-        ele_f->value = ele_b->value;
-        ele_b->value = tmp;
-        forward = forward->next;
-        backward = backward->prev;
-    }
+    struct list_head *prev = head->prev;
+    struct list_head *cur = head;
+    struct list_head *next = cur->next;
+    do {
+        cur->next = prev;
+        cur->prev = next;
+        prev = cur;
+        cur = next;
+        next = next->next;
+    } while (cur != head);
 }
 
 /*
