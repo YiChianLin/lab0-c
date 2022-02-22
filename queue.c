@@ -283,6 +283,9 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
+struct list_head *sep_list(struct list_head *head);
+struct list_head *merge_list(struct list_head *left, struct list_head *right);
+
 void q_sort(struct list_head *head)
 {
     if (!head || list_empty(head) || list_is_singular(head))
@@ -293,6 +296,7 @@ void q_sort(struct list_head *head)
     new_head = sep_list(new_head);
     list_add_tail(head, new_head);
 }
+
 struct list_head *sep_list(struct list_head *head)
 {
     if (head == head->next)
