@@ -264,7 +264,7 @@ void q_swap(struct list_head *head)
  */
 void q_reverse(struct list_head *head)
 {
-    if (!head || list_is_singular(head) || list_empty(head))
+    if (!head || list_empty(head) || list_is_singular(head))
         return;
 
     struct list_head *prev = head->prev;
@@ -278,10 +278,90 @@ void q_reverse(struct list_head *head)
         next = next->next;
     } while (cur != head);
 }
-
 /*
  * Sort elements of queue in ascending order
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head *new_head = head->next;
+    list_del(head);
+    new_head = sep_list(new_head);
+    list_add_tail(head, new_head);
+}
+struct list_head *sep_list(struct list_head *head)
+{
+    if (head == head->next)
+        return head;
+
+    struct list_head *fast = head;
+    struct list_head *mid = head->prev;
+    while (fast != mid && fast->next != mid) {
+        fast = fast->next;
+        mid = mid->prev;
+    }
+
+    struct list_head *left = head;
+    struct list_head *right = mid;
+    struct list_head *node = left->prev;
+
+    if (list_is_singular(left)) {
+        list_del_init(left);
+        list_del_init(right);
+
+    } else {
+        left->prev = right->prev;
+        left->prev->next = left;
+        node->next = right;
+        right->prev = node;
+    }
+    return merge_list(sep_list(left), sep_list(right));
+}
+
+struct list_head *merge_list(struct list_head *left, struct list_head *right)
+{
+    struct list_head *head = NULL;
+    struct list_head *tmp = NULL;
+
+    left->prev->next = NULL;
+    right->prev->next = NULL;
+
+    while (left || right) {
+        if (!right ||
+            (left && strcmp(list_entry(left, element_t, list)->value,
+                            list_entry(right, element_t, list)->value) < 0)) {
+            if (!tmp) {
+                head = tmp = left;
+                left = left->next;
+                if (left)
+                    left->prev = tmp->prev;
+                INIT_LIST_HEAD(tmp);
+            } else {
+                tmp = left;
+                left = left->next;
+                if (left)
+                    left->prev = tmp->prev;
+                list_add_tail(tmp, head);
+            }
+        } else {
+            if (!tmp) {
+                head = tmp = right;
+                right = right->next;
+                if (right)
+                    right->prev = tmp->prev;
+                INIT_LIST_HEAD(tmp);
+            } else {
+                tmp = right;
+                right = right->next;
+                if (right)
+                    right->prev = tmp->prev;
+                list_add_tail(tmp, head);
+            }
+        }
+    }
+    return head;
+}
