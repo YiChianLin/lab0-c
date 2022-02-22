@@ -214,7 +214,7 @@ bool q_delete_dup(struct list_head *head)
     struct list_head *tmp = head->next;
     struct list_head *if_dup = NULL;
 
-    while (!(tmp == head)) {
+    while (tmp != head) {
         element_t *ele_dup = list_entry(tmp, element_t, list);
         element_t *ele_dup_next = list_entry(tmp->next, element_t, list);
 
