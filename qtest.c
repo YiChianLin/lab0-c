@@ -759,6 +759,53 @@ static bool do_show(int argc, char *argv[])
         report(1, "%s takes no arguments", argv[0]);
         return false;
     }
+
+    return show_queue(0);
+}
+
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    srand(time(NULL));
+    int length = q_size(head) - 1;
+    int count = length + 1;
+    struct list_head *tail = head, *tmp = head, *rand_ptr = head;
+
+    for (int i = 0; i < length; i++) {
+        int rand_num;
+        rand_num = rand() % (count - 1) + 1;
+        for (int j = 0; j < count; j++) {
+            if (j < rand_num)
+                rand_ptr = tmp = tmp->next;
+            tail = tail->next;
+        }
+        tmp = rand_ptr->prev;
+        list_del(rand_ptr);
+        list_add(rand_ptr, tail);
+        list_del(tail);
+        list_add(tail, tmp);
+
+        rand_ptr = tail = tmp = head;
+        count--;
+    }
+}
+
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    if (!l_meta.l) {
+        report(3, "Warning: Try to access null queue");
+        return false;
+    }
+
+    q_shuffle(l_meta.l);
+
     return show_queue(0);
 }
 
@@ -795,6 +842,7 @@ static void console_init()
         dedup, "                | Delete all nodes that have duplicate string");
     ADD_COMMAND(swap,
                 "                | Swap every two adjacent nodes in queue");
+    ADD_COMMAND(shuffle, "                | Suffle the elements in queue");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
